@@ -1,21 +1,25 @@
 package com.bridgefy.samples.fileshare;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Build;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bridgefy.samples.fileshare.entities.BridgefyFile;
@@ -24,8 +28,6 @@ import com.bridgefy.sdk.client.Message;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -42,12 +45,39 @@ public class FileActivity  extends AppCompatActivity {
     private String conversationName;
     private String conversationId;
 
+    MessagesRecyclerViewAdapter messagesAdapter = new MessagesRecyclerViewAdapter(new ArrayList<>());
+    private ProgressDialog progressDialog;
 
+    private BroadcastReceiver conversationReceiver = new BroadcastReceiver() {
 
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "onReceive: received message to adapter");
+            Message message = intent.getParcelableExtra(MainActivity.INTENT_EXTRA_MSG);
+            byte[] fileBytes = message.getData();
+            BridgefyFile bridgefyFile = new BridgefyFile((String)message.getContent().get("file"));
+            bridgefyFile.setData(fileBytes);
+            bridgefyFile.setDeviceName(intent.getStringExtra(MainActivity.INTENT_EXTRA_NAME));
+            bridgefyFile.setDirection(BridgefyFile.INCOMING_FILE);
+            messagesAdapter.addMessage(bridgefyFile);
+        }
+    };
 
-    MessagesRecyclerViewAdapter messagesAdapter =
-            new MessagesRecyclerViewAdapter(new ArrayList<>());
+    private BroadcastReceiver progressReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int progres = intent.getIntExtra(MainActivity.INTENT_MSG_PROGRESS, 0);
+            if (progressDialog != null)
+            {
+                progressDialog.setProgress(progres);
+                if (progres == 100 || progres == 0)
+                    progressDialog.dismiss();
+            }
 
+        }
+    };
+
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +90,8 @@ public class FileActivity  extends AppCompatActivity {
         conversationId   = getIntent().getStringExtra(MainActivity.INTENT_EXTRA_UUID);
 
         // Configure the Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         // Enable the Up button
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
@@ -71,27 +101,22 @@ public class FileActivity  extends AppCompatActivity {
         Log.i("C", "onCreate: conversation id is "+conversationId);
 
         // register the receiver to listen for incoming bridgefyFiles
-        LocalBroadcastManager.getInstance(getBaseContext())
-                .registerReceiver(new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        Log.i(TAG, "onReceive: received message to adapter");
-                        Message message = intent.getParcelableExtra(MainActivity.INTENT_EXTRA_MSG);
-                        byte[] fileBytes = message.getData();
-                        BridgefyFile bridgefyFile = new BridgefyFile((String)message.getContent().get("file"));
-                        bridgefyFile.setData(fileBytes);
-                        bridgefyFile.setDeviceName(intent.getStringExtra(MainActivity.INTENT_EXTRA_NAME));
-                        bridgefyFile.setDirection(BridgefyFile.INCOMING_FILE);
-                        messagesAdapter.addMessage(bridgefyFile);
-                    }
-                }, new IntentFilter(conversationId));
+        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(conversationReceiver, new IntentFilter(conversationId));
+
+        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(progressReceiver, new IntentFilter(MainActivity.INTENT_BROADCAST_MSG));
 
         // configure the recyclerview
         RecyclerView messagesRecyclerView = findViewById(R.id.message_list);
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this);
-        mLinearLayoutManager.setReverseLayout(true);
         messagesRecyclerView.setLayoutManager(mLinearLayoutManager);
         messagesRecyclerView.setAdapter(messagesAdapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(conversationReceiver);
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(progressReceiver);
     }
 
     @Override
@@ -114,31 +139,36 @@ public class FileActivity  extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-
-        if (requestCode==1987 && data!=null)
-        {
+        if (requestCode == 1987 && data != null) {
             String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
-            Log.i(TAG, "onActivityResult: file path "+filePath);
-            File file=new File(filePath);
-            byte fileContent[] = new byte[(int)file.length()];
+            Log.i(TAG, "onActivityResult: file path " + filePath);
+            File file = new File(filePath);
+            byte fileContent[] = new byte[(int) file.length()];
 
             try {
                 FileInputStream fin = new FileInputStream(file);
                 fin.read(fileContent);
                 HashMap<String, Object> content = new HashMap<>();
-                content.put("file",file.getName());
+                content.put("file", file.getName());
 
-                com.bridgefy.sdk.client.Message.Builder builder=new com.bridgefy.sdk.client.Message.Builder();
-                com.bridgefy.sdk.client.Message message = builder.setReceiverId(conversationId).setContent(content).setData(fileContent).build();
-                Bridgefy.sendMessage(message);
+                Message.Builder builder = new Message.Builder();
+                Message message = builder.setReceiverId(conversationId).setContent(content).setData(fileContent).build();
+                message.setUuid(Bridgefy.sendMessage(message));
                 BridgefyFile bridgefyFile = new BridgefyFile(filePath);
                 bridgefyFile.setDirection(BridgefyFile.OUTGOING_FILE);
                 bridgefyFile.setData(fileContent);
                 messagesAdapter.addMessage(bridgefyFile);
 
-
-
+                progressDialog = new ProgressDialog(FileActivity.this);
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progressDialog.setIndeterminate(false);
+                progressDialog.setTitle(file.getName());
+                progressDialog.setMax(100);
+                progressDialog.setProgress(1);
+                progressDialog.setCancelable(false);
+                progressDialog.show();
 
             } catch (IOException e) {
                 e.printStackTrace();

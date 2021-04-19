@@ -1,7 +1,9 @@
-package com.bridgefy.samples.alerts;
+package com.bridgefy.samples.alerts.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.Objects;
 
 public class Alert implements Parcelable {
 
@@ -87,6 +89,19 @@ public class Alert implements Parcelable {
     @Override
     public String toString() {
         return id + " " + count;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Alert)) return false;
+        Alert alert = (Alert) o;
+        return getDate() == alert.getDate();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getDate());
     }
 }
 

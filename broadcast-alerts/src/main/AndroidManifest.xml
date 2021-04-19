@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.bridgefy.sdk.samples.alerts">
+    package="com.bridgefy.samples.alerts">
 
 
     <!-- Permissions -->
@@ -37,6 +37,11 @@
             <!--<category android:name="android.intent.category.DEFAULT"/>-->
             <!--</intent-filter>-->
         </activity>
+
+        <!-- Bridgefy SDK key -->
+        <meta-data
+            android:name="com.bridgefy.sdk.API_KEY"
+            android:value="YOUR_API_KEY" />
     </application>
 
 </manifest>

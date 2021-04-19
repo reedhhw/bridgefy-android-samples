@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/main">
+
+    <fragment
+        android:id="@+id/main"
+        android:name="com.bridgefy.samples.alerts.ux.main.MainFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/main_fragment"
+        >
+        <action
+            android:id="@+id/action_main_to_alerts"
+            app:destination="@id/alerts" >
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/alerts"
+        android:name="com.bridgefy.samples.alerts.ux.alerts.AlertFragment"
+        android:label="Alerts"
+        tools:layout="@layout/fragment_device_list">
+        <argument
+            android:name="alertsArrayList"
+            app:argType="java.util.ArrayList"
+            app:nullable="true"/>
+    </fragment>
+
+</navigation>

@@ -4,82 +4,82 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+
+import com.bridgefy.samples.alerts.model.Alert;
+import com.bridgefy.samples.alerts.ux.alerts.AlertFragment;
+import com.bridgefy.samples.alerts.ux.main.MainFragment;
+import com.bridgefy.samples.alerts.ux.main.MainViewModel;
+import com.bridgefy.sdk.client.BFBleProfile;
+import com.bridgefy.sdk.client.BFEnergyProfile;
+import com.bridgefy.sdk.client.BFEngineProfile;
 import com.bridgefy.sdk.client.Bridgefy;
 import com.bridgefy.sdk.client.BridgefyClient;
+import com.bridgefy.sdk.client.Config;
+import com.bridgefy.sdk.client.Device;
 import com.bridgefy.sdk.client.Message;
 import com.bridgefy.sdk.client.MessageListener;
 import com.bridgefy.sdk.client.RegistrationListener;
 import com.bridgefy.sdk.client.StateListener;
-import com.bridgefy.sdk.samples.alerts.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = "BRIDGEFY_SAMPLE";
 
-    @BindView(R.id.received_alerts)
-    TextView receivedAlerts;
-    @BindView(R.id.device_text)
-    TextView deviceText;
-    @BindView(R.id.device_id)
-    TextView deviceId;
-    @BindView(R.id.sent_alerts)
-    TextView sentAlerts;
-    @BindView(R.id.fab)
-    FloatingActionButton fab;
-    private int sentAlertCounter = 0;
-    private int receivedAlertCounter = 0;
-    Unbinder unbinder;
     private ArrayList<Alert> alertsData = new ArrayList<>();
 
-    String fragmentTag = "alerts_fragment";
-    String number = "number";
-    String date_sent = "date_sent";
-    String device_name = "device_name";
+    Config.Builder builder = new Config.Builder()
+            .setAutoConnect(true)
+            .setEngineProfile(BFEngineProfile.BFConfigProfileLongReach)
+            .setEnergyProfile(BFEnergyProfile.BALANCED)
+            .setBleProfile(BFBleProfile.EXTENDED_RANGE)
+            .setMaxConnectionRetries(5)
+            .setAntennaType(Config.Antenna.BLUETOOTH_LE);
 
+    MainViewModel mainViewModel;
+
+    NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        unbinder = ButterKnife.bind(this);
-        deviceText.setText(Build.MANUFACTURER + " " + Build.MODEL);
-
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        mainViewModel.init();
         if (isThingsDevice(this)) {
             // enabling bluetooth automatically
             bluetoothAdapter.enable();
         }
 
-        Bridgefy.initialize(getApplicationContext(), "API_KEY", new RegistrationListener() {
+
+        Bridgefy.debug = BuildConfig.DEBUG;
+        Bridgefy.initialize(getApplicationContext(), null, new RegistrationListener() {
             @Override
             public void onRegistrationSuccessful(BridgefyClient bridgefyClient) {
                 // Important data can be fetched from the BridgefyClient object
-                deviceId.setText(bridgefyClient.getUserUuid());
-
+                // deviceId.setText(bridgefyClient.getUserUuid());
+                mainViewModel.getBridgefyClientMutableLiveData().postValue(bridgefyClient);
                 // Once the registration process has been successful, we can start operations
-                Bridgefy.start(messageListener, stateListener);
+                Bridgefy.start(messageListener, stateListener, builder.build());
             }
 
             @Override
@@ -90,6 +90,12 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        navController = navHostFragment.getNavController();
+
+        NavigationUI.setupWithNavController(toolbar, navController);
+        NavigationUI.setupActionBarWithNavController(this, navController);
     }
 
 
@@ -98,7 +104,8 @@ public class MainActivity extends AppCompatActivity {
         return pm.hasSystemFeature("android.hardware.type.embedded");
     }
 
-    StateListener stateListener = new StateListener() {
+    StateListener stateListener = new StateListener()
+    {
         @Override
         public void onStarted() {
             Log.i(TAG, "onStarted: Bridgefy started");
@@ -112,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        prepareMessage();
+                        mainViewModel.sendMessageBroadcast();
                         handler.postDelayed(this, 10000);
                     }
                 });
@@ -133,6 +140,25 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
+
+        @Override
+        public void onDeviceDetected(Device device) {
+
+        }
+
+        @Override
+        public void onDeviceUnavailable(Device device) {
+
+        }
+    };
+
+    MessageListener messageListener = new MessageListener()
+    {
+        @Override
+        public void onBroadcastMessageReceived(Message message) {
+            mainViewModel.getMessageMutableLiveData().postValue(message);
+        }
+
     };
 
     @Override
@@ -140,90 +166,20 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             //retry again after permissions have been granted
-            Bridgefy.start(messageListener, stateListener);
+            Bridgefy.start(messageListener, stateListener, builder.build());
         }
-    }
-
-    void prepareMessage() {
-        sentAlertCounter++;
-
-        //assemble the data that we are about to send
-        HashMap<String, Object> data = new HashMap<>();
-        data.put(number, sentAlertCounter);
-        data.put(date_sent, Double.parseDouble("" + System.currentTimeMillis()));
-        data.put(device_name, Build.MANUFACTURER + " " + Build.MODEL);
-        Message message = Bridgefy.createMessage(data);
-
-
-        //Broadcast messages are sent to anyone that can receive it
-        Bridgefy.sendBroadcastMessage(message);
-        sentAlerts.setText(String.valueOf(sentAlertCounter));
-    }
-
-    @OnClick(R.id.fab)
-    public void onViewClicked() {
-        prepareMessage();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbinder.unbind();
 
         // always stop Bridgefy when it's no longer necessary
         Bridgefy.stop();
     }
 
-    MessageListener messageListener = new MessageListener() {
-        @Override
-        public void onBroadcastMessageReceived(Message message) {
-            receivedAlertCounter++;
-            receivedAlerts.setText(String.valueOf(receivedAlertCounter));
-
-            HashMap<String, Object> content = message.getContent();
-
-            Alert alert = new Alert(message.getSenderId(), (Integer) content.get(number), (String) content.get(device_name), ((Double) content.get(date_sent)).longValue());
-
-            alertsData.add(alert);
-
-            AlertFragment alertFragment = (AlertFragment) getSupportFragmentManager().findFragmentByTag(fragmentTag);
-            if (alertFragment != null) {
-                alertFragment.updateList(alertsData);
-            }
-        }
-
-    };
-
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_alerts) {
-            AlertFragment alertFragment = AlertFragment.newInstance(alertsData);
-            getSupportFragmentManager().beginTransaction().add(R.id.content_main, alertFragment, "alerts_fragment").addToBackStack(null).commit();
-
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (getSupportFragmentManager().findFragmentByTag(fragmentTag) != null) {
-            getSupportFragmentManager().popBackStackImmediate();
-        } else {
-            super.onBackPressed();
-        }
+    public boolean onSupportNavigateUp() {
+        return navController.navigateUp() || super.onSupportNavigateUp();
     }
 }

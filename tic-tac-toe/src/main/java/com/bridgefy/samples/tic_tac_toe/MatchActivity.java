@@ -1,7 +1,7 @@
 package com.bridgefy.samples.tic_tac_toe;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,7 +13,6 @@ import com.bridgefy.samples.tic_tac_toe.entities.Move;
 import com.bridgefy.samples.tic_tac_toe.entities.Player;
 import com.bridgefy.samples.tic_tac_toe.entities.RefuseMatch;
 import com.bridgefy.sdk.client.Bridgefy;
-import com.bridgefy.sdk.client.Message;
 import com.squareup.otto.Subscribe;
 
 import java.util.HashMap;

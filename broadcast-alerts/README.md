@@ -8,7 +8,7 @@ Done via an inline declaration. The API_KEY in this example is passed as a param
 as opposed to specified in the AndroidManifest.xml file 
 
 ```
-Bridgefy.initialize(getApplicationContext(), "68898033-3dce-4c80-843e-e10982b942ac", new RegistrationListener() {
+Bridgefy.initialize(getApplicationContext(), "YOUR API KEY", new RegistrationListener() {
     @Override
     public void onRegistrationSuccessful(BridgefyClient bridgefyClient) {
         //Important data can be fetched from the BridgefyClient object

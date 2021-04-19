@@ -1,15 +1,16 @@
-package com.bridgefy.samples.alerts;
+package com.bridgefy.samples.alerts.ux.alerts;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.bridgefy.sdk.samples.alerts.R;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.bridgefy.samples.alerts.R;
+import com.bridgefy.samples.alerts.model.Alert;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.ViewHolder> 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_device, parent, false);
+                .inflate(R.layout.item_alert, parent, false);
         return new ViewHolder(view);
     }
 
@@ -56,7 +57,7 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.ViewHolder> 
         return mValues.size();
     }
 
-    public void updateData(ArrayList<Alert> alertsData) {
+    public void updateData(List<Alert> alertsData) {
         mValues = alertsData;
         notifyDataSetChanged();
     }

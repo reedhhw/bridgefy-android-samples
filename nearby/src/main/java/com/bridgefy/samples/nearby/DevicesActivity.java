@@ -6,11 +6,11 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bridgefy.sdk.BuildConfig;
 import com.bridgefy.sdk.client.Bridgefy;
 import com.bridgefy.sdk.client.BridgefyClient;
 import com.bridgefy.sdk.client.Device;
@@ -106,7 +107,7 @@ public class DevicesActivity extends AppCompatActivity {
             // enabling bluetooth automatically
             bluetoothAdapter.enable();
         }
-
+        Bridgefy.debug = BuildConfig.DEBUG;
         //Always use steady context objects to avoid leaks
         Bridgefy.initialize(getApplicationContext(), registrationListener);
     }
@@ -146,6 +147,16 @@ public class DevicesActivity extends AppCompatActivity {
         @Override
         public void onDeviceLost(Device device) {
             Log.w(TAG, "Device lost: " + device.getUserId());
+        }
+
+        @Override
+        public void onDeviceDetected(Device device) {
+
+        }
+
+        @Override
+        public void onDeviceUnavailable(Device device) {
+
         }
 
 

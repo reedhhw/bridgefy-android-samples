@@ -5,14 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,7 +33,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import static com.bridgefy.samples.twitter.IntroActivity.INTENT_USERNAME;
-import static com.bridgefy.samples.twitter.NetworkStateReceiver.WIFI_STATE_CONNECTED;
 
 
 public class TimelineActivity extends AppCompatActivity implements TweetManager.TweetListener {

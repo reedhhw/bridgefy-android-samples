@@ -68,6 +68,16 @@ public class BridgefyListener {
         }
 
         @Override
+        public void onDeviceDetected(Device device) {
+
+        }
+
+        @Override
+        public void onDeviceUnavailable(Device device) {
+
+        }
+
+        @Override
         public void onStarted() {
             Log.i(TAG, "onStarted()");
         }

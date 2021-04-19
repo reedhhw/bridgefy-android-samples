@@ -1,8 +1,19 @@
-<p align="center"><a href="https://bridgefy.me" target="_blank" rel="noopener noreferrer"><img width="400" src="https://admin.bridgefy.me/assets/img/bridgefy-logo.svg" alt="Vue logo"></a></p>
+### Bridgefy 
 
-![GitHub top language](https://img.shields.io/github/languages/top/bridgefy/bridgefy-android-samples) ![GitHub](https://img.shields.io/badge/version-1.1.25-green) ![GitHub last commit](https://img.shields.io/github/last-commit/bridgefy/bridgefy-android-samples) ![GitHub issues](https://img.shields.io/github/issues/bridgefy/android-samples) ![GitHub](https://img.shields.io/github/license/bridgefy/bridgefy-android-samples)
+<p align="center"><a href="https://bridgefy.me" target="_blank" rel="noopener noreferrer"><img width="400" src="https://bridgefy.me/wp-content/uploads/2021/04/bridgefy_logo_red.svg" alt="Vue logo"></a></p>
 
-Bridgefy is a developer-friendly SDK that can be easily integrated into [Android](https://github.com/bridgefy/bridgefy-android-samples) and [iOS](https://github.com/bridgefy/bridgefy-ios-developer) apps to make them work without the Internet. Companies increase engagement by letting people use their apps when they previously couldn't, while at the same time improving user experience.
+![Maven metadata URL](https://img.shields.io/maven-metadata/v?metadataUrl=http%3A%2F%2F104.196.228.98%3A8081%2Fartifactory%2Flibs-release-local%2Fcom%2Fbridgefy%2Fandroid-sdk%2Fmaven-metadata.xml) ![GitHub last commit](https://img.shields.io/github/last-commit/bridgefy/bridgefy-android-samples) ![GitHub issues](https://img.shields.io/github/issues-raw/bridgefy/bridgefy-android-samples?style=plastic)
+
+### Overview
+
+The Bridgefy Software Development Kit (SDK) is a state-of-the-art, plug-and-play package of awesomeness that will let people use your mobile app when they don’t have access to the Internet by using mesh networks.
+
+Integrate the Bridgefy SDK into your [Android](https://github.com/bridgefy/bridgefy-android-samples) and [iOS](https://github.com/bridgefy/bridgefy-ios-developer) app to reach the 3.5 billion people that don’t always have access to an Internet connection, and watch engagement and revenue grow!
+
+<p>Website. https://bridgefy.me/sdk/</p>
+<p>Email. contact@bridgefy.me</p>
+<p>Twitter. https://twitter.com/bridgefy</p>
+<p>Facebook. https://www.facebook.com/bridgefy</p>
 
 ### Table of contents
 
@@ -12,7 +23,7 @@ Bridgefy is a developer-friendly SDK that can be easily integrated into [Android
 1. [Installation Instructions](#installation-instructions)
 1. [Initialization](#initialization)
 	* [Initialize Bridgefy](#initialize-bridgefy)
-	* [Initialize Bridgefy Without Internet](#initialize-bridgefy-without-internet)
+	* [Initialize Bridgefy Without Internet](#initialize-bridgefy-without-an-internet-connection)
 1. [Starting Operations](#starting-operations)
 	* [Automatic Operation](#automatic-operation)
 	* [On Demand Operation](#on-demand-operation)
@@ -25,7 +36,7 @@ Bridgefy is a developer-friendly SDK that can be easily integrated into [Android
 1. [Using ProGuard](#using-proguard)
 1. [Full documentation](#full-documentation)
 1. [Supported Devices](#supported-devices)
-1. [Contact](#contact)
+1. [Contact](#contact--support)
 
 ## Quick Start Guide
 
@@ -84,7 +95,7 @@ android {
 Then, add the dependency:
 
 ```javascript
-implementation 'com.bridgefy:android-sdk:1.1.25'
+implementation 'com.bridgefy:android-sdk:2.0.0'
 ```
 ## Initialization
 
